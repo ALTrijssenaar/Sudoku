@@ -141,4 +141,66 @@ public class SessionsController : ControllerBase
             completedAt = session.CompletedAt
         });
     }
+
+    /// <summary>
+    /// Update a single cell in a game session
+    /// </summary>
+    [HttpPatch("{id}/cell")]
+    public async Task<ActionResult<SessionResponse>> UpdateCell(Guid id, [FromBody] UpdateCellRequest request)
+    {
+        // Validate cell coordinates
+        if (request.Row < 0 || request.Row > 8)
+        {
+            return BadRequest(new { error = "Row must be between 0 and 8" });
+        }
+
+        if (request.Col < 0 || request.Col > 8)
+        {
+            return BadRequest(new { error = "Column must be between 0 and 8" });
+        }
+
+        // Validate cell value (0 = empty, 1-9 = filled)
+        if (request.Value < 0 || request.Value > 9)
+        {
+            return BadRequest(new { error = "Value must be between 0 and 9" });
+        }
+
+        var session = await _sessionRepository.GetByIdAsync(id);
+        if (session == null)
+        {
+            return NotFound(new { error = "Session not found" });
+        }
+
+        if (session.Status == "completed")
+        {
+            return BadRequest(new { error = "Cannot update a completed session" });
+        }
+
+        // Check if the cell is part of the initial puzzle (cannot be modified)
+        int cellIndex = request.Row * 9 + request.Col;
+        if (session.Puzzle.InitialCells[cellIndex] != 0)
+        {
+            return BadRequest(new { error = "Cannot modify initial puzzle cells" });
+        }
+
+        // Update the cell
+        session.CurrentState[cellIndex] = request.Value;
+        session.LastSavedAt = DateTime.UtcNow;
+
+        await _sessionRepository.UpdateAsync(session);
+
+        var response = new SessionResponse
+        {
+            Id = session.Id,
+            PuzzleId = session.PuzzleId,
+            CurrentState = session.CurrentState,
+            InitialState = session.Puzzle.InitialCells,
+            StartedAt = session.StartedAt,
+            LastSavedAt = session.LastSavedAt,
+            CompletedAt = session.CompletedAt,
+            Status = session.Status
+        };
+
+        return Ok(response);
+    }
 }

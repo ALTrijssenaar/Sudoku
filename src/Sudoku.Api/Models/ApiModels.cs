@@ -29,3 +29,10 @@ public class PuzzleResponse
     public int[] InitialCells { get; set; } = new int[81];
     public DateTime GeneratedAt { get; set; }
 }
+
+public class UpdateCellRequest
+{
+    public int Row { get; set; }
+    public int Col { get; set; }
+    public int Value { get; set; }
+}

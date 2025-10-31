@@ -44,11 +44,11 @@ Independent test: Register, login, POST /api/sessions with puzzleId or difficult
 Goal: Users can pick a difficulty and resume an in-progress puzzle later.
 Independent test: Start a Medium puzzle, exit, login again, resume the session and see last saved board.
 
-- [ ] T022 [US2] Implement difficulty configuration and mapping in `src/Sudoku.Infrastructure/Config/DifficultyConfig.cs`
-- [ ] T023 [US2] Implement PATCH `api/sessions/{id}/cell` in `src/Sudoku.Api/Controllers/SessionsController.cs` to update a single cell (request body: row, col, value)
-- [ ] T024 [US2] Implement GET `api/sessions/{id}` resume endpoint in `src/Sudoku.Api/Controllers/SessionsController.cs` to return saved session state
-- [ ] T025 [US2] Ensure `GameSessionRepository` supports upsert/save behavior in `src/Sudoku.Infrastructure/Repositories/GameSessionRepository.cs`
-- [ ] T026 [US2] Add integration tests for save and resume at `tests/Integration/SessionResumeTests.cs`
+- [x] T022 [US2] Implement difficulty configuration and mapping in `src/Sudoku.Infrastructure/Config/DifficultyConfig.cs`
+- [x] T023 [US2] Implement PATCH `api/sessions/{id}/cell` in `src/Sudoku.Api/Controllers/SessionsController.cs` to update a single cell (request body: row, col, value)
+- [x] T024 [US2] Implement GET `api/sessions/{id}` resume endpoint in `src/Sudoku.Api/Controllers/SessionsController.cs` to return saved session state
+- [x] T025 [US2] Ensure `GameSessionRepository` supports upsert/save behavior in `src/Sudoku.Infrastructure/Repositories/GameSessionRepository.cs`
+- [x] T026 [US2] Add integration tests for save and resume at `tests/Integration/SessionResumeTests.cs`
 
 ## Phase 5 - User Story 3 (P3): Account Management and Progress
 Goal: Provide account registration/login and user history of completed puzzles.
