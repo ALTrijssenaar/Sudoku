@@ -1,0 +1,134 @@
+openapi: 3.0.1
+info:
+  title: Sudoku Fancy UI API
+  version: '2.0'
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                displayName:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User registered
+  /api/auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: JWT token
+  /api/puzzles:
+    get:
+      summary: Get puzzles by difficulty
+      parameters:
+        - name: difficulty
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of puzzles
+  /api/puzzles/{id}:
+    get:
+      summary: Get puzzle by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Puzzle details
+  /api/sessions:
+    post:
+      summary: Start a new game session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                puzzleId:
+                  type: string
+      responses:
+        '201':
+          description: Session started
+  /api/sessions/{id}:
+    get:
+      summary: Get session state
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session details
+    patch:
+      summary: Update a cell in session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                row:
+                  type: integer
+                col:
+                  type: integer
+                value:
+                  type: integer
+      responses:
+        '200':
+          description: Cell updated
+  /api/sessions/{id}/complete:
+    post:
+      summary: Complete a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session completed
+  /api/users/{userId}/history:
+    get:
+      summary: Get user puzzle history
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of completed sessions
