@@ -1,0 +1,185 @@
+{
+  "info": {
+    "name": "Sudoku API",
+    "description": "Collection for testing Sudoku Platform API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"SecurePassword123\",\n  \"displayName\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"DemoPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Puzzles",
+      "item": [
+        {
+          "name": "Get Puzzles by Difficulty",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/puzzles?difficulty=Easy",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "puzzles"],
+              "query": [
+                {
+                  "key": "difficulty",
+                  "value": "Easy"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Puzzle by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/puzzles/{{puzzleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "puzzles", "{{puzzleId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Create Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puzzleId\": \"{{puzzleId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions"]
+            }
+          }
+        },
+        {
+          "name": "Get Session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "{{sessionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Cell",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"row\": 0,\n  \"col\": 0,\n  \"value\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{sessionId}}/cell",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sessions", "{{sessionId}}", "cell"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get User History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{userId}}", "history"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "puzzleId",
+      "value": ""
+    },
+    {
+      "key": "sessionId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ]
+}

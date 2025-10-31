@@ -2,13 +2,54 @@
 
 An individual user platform to solve Sudoku games built with .NET, PostgreSQL, and Docker.
 
+## Quick Start
+
+### 5-Minute Setup
+
+1. **Clone and start the database:**
+   ```bash
+   git clone https://github.com/ALTrijssenaar/Sudoku.git
+   cd Sudoku
+   docker compose up -d
+   ```
+
+2. **Run the application:**
+   ```bash
+   cd src/Sudoku.Api
+   dotnet run
+   ```
+
+3. **Access the API:**
+   - Open your browser to `https://localhost:5001` or `http://localhost:5000`
+   - Swagger UI with interactive docs is available at the root URL
+   - Demo user: `demo@example.com` / `DemoPassword123`
+
+### Try It Out
+
+```bash
+# Register a new user
+curl -X POST https://localhost:5001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"YourPassword123","displayName":"Your Name"}'
+
+# Login
+curl -X POST https://localhost:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"YourPassword123"}'
+
+# Get a puzzle (Easy difficulty)
+curl https://localhost:5001/api/puzzles?difficulty=Easy
+```
+
 ## Features
 
-- User registration and authentication
+- User registration and authentication (JWT)
 - Multiple difficulty levels (Easy, Medium, Hard)
 - Save and resume puzzle progress
 - View puzzle history
 - Interactive Sudoku board validation
+- RESTful API with OpenAPI/Swagger documentation
+- Error handling and correlation IDs
 
 ## Tech Stack
 
@@ -18,6 +59,8 @@ An individual user platform to solve Sudoku games built with .NET, PostgreSQL, a
 - **PostgreSQL** - Database
 - **Docker** - Containerization
 - **Swagger/OpenAPI** - API documentation
+- **JWT Bearer Authentication** - Security
+- **xUnit** - Testing framework
 
 ## Getting Started
 
@@ -136,8 +179,16 @@ dotnet ef migrations remove --project Sudoku.Infrastructure --startup-project Su
 
 Once the application is running, you can access:
 
-- **Swagger UI**: `https://localhost:5001/swagger`
+- **Swagger UI**: `https://localhost:5001/swagger` (interactive API documentation)
 - **OpenAPI Spec**: `specs/1-sudoku-platform/contracts/openapi.yaml`
+- **Postman Collection**: `docs/postman/Sudoku-API.postman_collection.json`
+
+### Using the Postman Collection
+
+1. Import `docs/postman/Sudoku-API.postman_collection.json` into Postman
+2. Set the `baseUrl` variable to your API endpoint (default: `http://localhost:5000`)
+3. Start with the Authentication folder to register/login
+4. Use returned IDs in subsequent requests
 
 ## Development
 

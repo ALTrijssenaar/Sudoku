@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Sudoku.Api.Middleware;
 using Sudoku.Core.Repositories;
 using Sudoku.Core.Security;
 using Sudoku.Core.Services;
@@ -11,6 +12,11 @@ using Sudoku.Infrastructure.Security;
 using Sudoku.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Configure database connection - use InMemory for Testing, PostgreSQL otherwise
 if (builder.Environment.IsEnvironment("Testing"))
@@ -34,6 +40,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPuzzleGenerator, PuzzleGenerator>();
 builder.Services.AddScoped<BoardValidator>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<DbInitializer>();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
@@ -69,7 +76,18 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Seed database in development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbInitializer = scope.ServiceProvider.GetRequiredService<DbInitializer>();
+    await dbInitializer.SeedAsync();
+}
+
 // Configure the HTTP request pipeline
+app.UseCorrelationId();
+app.UseErrorHandling();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
