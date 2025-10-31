@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sudoku.Api.Models;
 using Sudoku.Core.Entities;
@@ -8,6 +10,7 @@ namespace Sudoku.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class SessionsController : ControllerBase
 {
     private readonly IGameSessionRepository _sessionRepository;
@@ -30,8 +33,8 @@ public class SessionsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<SessionResponse>> CreateSession([FromBody] CreateSessionRequest request)
     {
-        // For MVP, we'll use a hardcoded user ID. In Phase 5, this will come from JWT auth
-        var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        // Extract user ID from JWT claims
+        var userId = GetUserIdFromClaims();
 
         var puzzle = await _puzzleRepository.GetByIdAsync(request.PuzzleId);
         if (puzzle == null)
@@ -202,5 +205,15 @@ public class SessionsController : ControllerBase
         };
 
         return Ok(response);
+    }
+
+    private Guid GetUserIdFromClaims()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            throw new UnauthorizedAccessException("Invalid user ID in token");
+        }
+        return userId;
     }
 }

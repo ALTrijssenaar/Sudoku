@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Sudoku.Api.Models;
 
@@ -6,11 +7,20 @@ namespace Sudoku.Integration.Tests;
 
 public class AuthAndHistoryTests : IClassFixture<CustomWebApplicationFactory>
 {
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
     public AuthAndHistoryTests(CustomWebApplicationFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
+    }
+
+    private HttpClient CreateAuthenticatedClient(string token)
+    {
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
     }
 
     [Fact]
@@ -178,9 +188,13 @@ public class AuthAndHistoryTests : IClassFixture<CustomWebApplicationFactory>
         var authResponse = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
         Assert.NotNull(authResponse);
         var userId = authResponse.UserId;
+        var token = authResponse.Token;
+
+        // Create authenticated client
+        var authClient = CreateAuthenticatedClient(token);
 
         // Act - Get user history
-        var historyResponse = await _client.GetAsync($"/api/users/{userId}/history");
+        var historyResponse = await authClient.GetAsync($"/api/users/{userId}/history");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
@@ -190,16 +204,16 @@ public class AuthAndHistoryTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetUserHistory_WithNonExistentUser_ReturnsNotFound()
+    public async Task GetUserHistory_WithoutAuth_ReturnsUnauthorized()
     {
         // Arrange
-        var nonExistentUserId = Guid.NewGuid();
+        var someUserId = Guid.NewGuid();
 
-        // Act
-        var response = await _client.GetAsync($"/api/users/{nonExistentUserId}/history");
+        // Act - Try to access history without authentication
+        var response = await _client.GetAsync($"/api/users/{someUserId}/history");
 
         // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
@@ -220,6 +234,7 @@ public class AuthAndHistoryTests : IClassFixture<CustomWebApplicationFactory>
         var authResponse = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
         Assert.NotNull(authResponse);
         var userId = authResponse.UserId;
+        var token = authResponse.Token;
 
         // Step 2: Login
         var loginRequest = new LoginRequest { Email = email, Password = password };
@@ -230,23 +245,26 @@ public class AuthAndHistoryTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(userId, loginAuthResponse.UserId);
         Assert.NotEmpty(loginAuthResponse.Token);
 
-        // Step 3: Get a puzzle
+        // Create authenticated client
+        var authClient = CreateAuthenticatedClient(token);
+
+        // Step 3: Get a puzzle (public endpoint, no auth needed)
         var puzzleResponse = await _client.GetAsync("/api/puzzles?difficulty=Easy");
         Assert.Equal(HttpStatusCode.OK, puzzleResponse.StatusCode);
         var puzzles = await puzzleResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
         Assert.NotNull(puzzles);
         Assert.NotEmpty(puzzles);
 
-        // Step 4: Create session
+        // Step 4: Create session (requires auth)
         var createSessionRequest = new CreateSessionRequest { PuzzleId = puzzles[0].Id };
-        var sessionResponse = await _client.PostAsJsonAsync("/api/sessions", createSessionRequest);
+        var sessionResponse = await authClient.PostAsJsonAsync("/api/sessions", createSessionRequest);
         Assert.Equal(HttpStatusCode.Created, sessionResponse.StatusCode);
         var session = await sessionResponse.Content.ReadFromJsonAsync<SessionResponse>();
         Assert.NotNull(session);
         Assert.Equal("in-progress", session.Status);
 
-        // Step 5: Get session (resume)
-        var getSessionResponse = await _client.GetAsync($"/api/sessions/{session.Id}");
+        // Step 5: Get session (requires auth)
+        var getSessionResponse = await authClient.GetAsync($"/api/sessions/{session.Id}");
         Assert.Equal(HttpStatusCode.OK, getSessionResponse.StatusCode);
         var retrievedSession = await getSessionResponse.Content.ReadFromJsonAsync<SessionResponse>();
         Assert.NotNull(retrievedSession);

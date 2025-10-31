@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Sudoku.Api.Models;
 
@@ -11,6 +12,33 @@ public class SessionLifecycleTests : IClassFixture<CustomWebApplicationFactory>
     public SessionLifecycleTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
+    }
+
+    private async Task<string> GetAuthTokenAsync(HttpClient client)
+    {
+        // Register a new user with a unique email
+        var registerRequest = new RegisterRequest
+        {
+            Email = $"test{Guid.NewGuid()}@example.com",
+            Password = "TestPassword123",
+            DisplayName = "Test User"
+        };
+
+        var registerResponse = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+        registerResponse.EnsureSuccessStatusCode();
+        var authResponse = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
+        
+        Assert.NotNull(authResponse);
+        Assert.NotNull(authResponse.Token);
+        
+        return authResponse.Token;
+    }
+
+    private HttpClient CreateAuthenticatedClient(string token)
+    {
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
     }
 
     [Fact]
@@ -62,16 +90,18 @@ public class SessionLifecycleTests : IClassFixture<CustomWebApplicationFactory>
     public async Task SessionLifecycle_CreateAndGet_Success()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
 
         // Step 1: Get a puzzle
-        var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Medium");
+        var puzzlesResponse = await unauthClient.GetAsync("/api/puzzles?difficulty=Medium");
         puzzlesResponse.EnsureSuccessStatusCode();
         var puzzles = await puzzlesResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
         Assert.NotNull(puzzles);
         var puzzle = puzzles[0];
 
-        // Step 2: Create a session
+        // Step 2: Create a session (requires auth)
         var createRequest = new CreateSessionRequest { PuzzleId = puzzle.Id };
         var createResponse = await client.PostAsJsonAsync("/api/sessions", createRequest);
         
@@ -84,7 +114,7 @@ public class SessionLifecycleTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(81, session.CurrentState.Length);
         Assert.Equal(81, session.InitialState.Length);
 
-        // Step 3: Get the session
+        // Step 3: Get the session (requires auth)
         var getResponse = await client.GetAsync($"/api/sessions/{session.Id}");
         getResponse.EnsureSuccessStatusCode();
         var retrievedSession = await getResponse.Content.ReadFromJsonAsync<SessionResponse>();
@@ -98,7 +128,9 @@ public class SessionLifecycleTests : IClassFixture<CustomWebApplicationFactory>
     public async Task GetSession_NotFound_ReturnsNotFound()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
         var nonExistentId = Guid.NewGuid();
 
         // Act
