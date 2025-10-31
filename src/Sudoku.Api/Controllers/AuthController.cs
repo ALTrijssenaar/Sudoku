@@ -68,7 +68,9 @@ public class AuthController : ControllerBase
 
         await _userRepository.CreateAsync(user);
 
-        _logger.LogInformation("User registered: {Email}", user.Email);
+        // Log with sanitized email (remove control characters to prevent log forging)
+        var sanitizedEmail = SanitizeForLogging(user.Email);
+        _logger.LogInformation("User registered: {Email}", sanitizedEmail);
 
         // Generate JWT token
         var token = GenerateJwtToken(user);
@@ -109,7 +111,9 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = "Invalid email or password" });
         }
 
-        _logger.LogInformation("User logged in: {Email}", user.Email);
+        // Log with sanitized email (remove control characters to prevent log forging)
+        var sanitizedEmail = SanitizeForLogging(user.Email);
+        _logger.LogInformation("User logged in: {Email}", sanitizedEmail);
 
         // Generate JWT token
         var token = GenerateJwtToken(user);
@@ -165,5 +169,11 @@ public class AuthController : ControllerBase
         {
             return false;
         }
+    }
+
+    private static string SanitizeForLogging(string value)
+    {
+        // Remove control characters (including newlines) to prevent log forging
+        return new string(value.Where(c => !char.IsControl(c)).ToArray());
     }
 }

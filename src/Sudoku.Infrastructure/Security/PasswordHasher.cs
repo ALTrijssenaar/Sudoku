@@ -41,6 +41,10 @@ public class PasswordHasher : IPasswordHasher
         byte[] salt = new byte[SaltSize];
         Array.Copy(hashBytes, 0, salt, 0, SaltSize);
         
+        // Extract the stored hash
+        byte[] storedHash = new byte[HashSize];
+        Array.Copy(hashBytes, SaltSize, storedHash, 0, HashSize);
+        
         // Hash the provided password with the extracted salt
         byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.UTF8.GetBytes(providedPassword),
@@ -49,15 +53,7 @@ public class PasswordHasher : IPasswordHasher
             HashAlgorithmName.SHA256,
             HashSize);
         
-        // Compare the hash
-        for (int i = 0; i < HashSize; i++)
-        {
-            if (hashBytes[i + SaltSize] != hash[i])
-            {
-                return false;
-            }
-        }
-        
-        return true;
+        // Use constant-time comparison to prevent timing attacks
+        return CryptographicOperations.FixedTimeEquals(storedHash, hash);
     }
 }

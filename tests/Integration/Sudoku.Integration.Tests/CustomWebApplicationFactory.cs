@@ -23,7 +23,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = "SudokuTestClient",
                 ["Jwt:ExpiryMinutes"] = "60"
             };
-            config.AddInMemoryCollection(testConfig!);
+            config.AddInMemoryCollection(testConfig);
         });
 
         builder.ConfigureServices(services =>

@@ -40,7 +40,7 @@ public class UsersController : ControllerBase
             PuzzleId = s.PuzzleId,
             Difficulty = s.Puzzle.Difficulty,
             StartedAt = s.StartedAt,
-            CompletedAt = s.CompletedAt ?? DateTime.MinValue
+            CompletedAt = s.CompletedAt!.Value // Safe since we filter for completed sessions
         });
 
         return Ok(response);
