@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Sudoku.Core.Entities;
@@ -12,6 +13,19 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            // Override JWT configuration for testing
+            var testConfig = new Dictionary<string, string>
+            {
+                ["Jwt:Secret"] = "test-secret-key-that-is-at-least-32-characters-long",
+                ["Jwt:Issuer"] = "SudokuTestApi",
+                ["Jwt:Audience"] = "SudokuTestClient",
+                ["Jwt:ExpiryMinutes"] = "60"
+            };
+            config.AddInMemoryCollection(testConfig);
+        });
+
         builder.ConfigureServices(services =>
         {
             // Remove existing DbContext registration

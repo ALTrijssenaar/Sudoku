@@ -36,3 +36,34 @@ public class UpdateCellRequest
     public int Col { get; set; }
     public int Value { get; set; }
 }
+
+// Authentication models
+public class RegisterRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string? DisplayName { get; set; }
+    public string Password { get; set; } = string.Empty;
+}
+
+public class LoginRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public class AuthResponse
+{
+    public Guid UserId { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string? DisplayName { get; set; }
+    public string Token { get; set; } = string.Empty;
+}
+
+public class UserHistoryResponse
+{
+    public Guid SessionId { get; set; }
+    public Guid PuzzleId { get; set; }
+    public string Difficulty { get; set; } = string.Empty;
+    public DateTime StartedAt { get; set; }
+    public DateTime CompletedAt { get; set; }
+}

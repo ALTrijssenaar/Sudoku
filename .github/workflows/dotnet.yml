@@ -1,0 +1,51 @@
+name: .NET Build and Test
+
+on:
+  push:
+    branches: [ "main", "copilot/**" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sudoku_user
+          POSTGRES_PASSWORD: sudoku_password
+          POSTGRES_DB: sudoku_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore src/Sudoku.sln
+    
+    - name: Build
+      run: dotnet build src/Sudoku.sln --no-restore --configuration Release
+    
+    - name: Run Unit Tests
+      run: dotnet test tests/Unit/Sudoku.Core.Tests/Sudoku.Core.Tests.csproj --no-build --verbosity normal --configuration Release
+    
+    - name: Run Integration Tests
+      run: dotnet test tests/Integration/Sudoku.Integration.Tests/Sudoku.Integration.Tests.csproj --verbosity normal --configuration Release
+      env:
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=sudoku_test;Username=sudoku_user;Password=sudoku_password"
