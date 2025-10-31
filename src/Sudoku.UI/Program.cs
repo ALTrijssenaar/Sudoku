@@ -19,6 +19,7 @@ builder.Services.AddMudServices();
 // Add application services
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<BoardValidator>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<AuthService>());
 builder.Services.AddAuthorizationCore();
 
