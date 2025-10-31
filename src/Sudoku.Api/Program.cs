@@ -7,10 +7,18 @@ using Sudoku.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure database connection
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<SudokuDbContext>(options =>
-    options.UseNpgsql(connectionString));
+// Configure database connection - use InMemory for Testing, PostgreSQL otherwise
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    // In testing environment, the test factory will configure the DbContext
+    // Don't register it here to avoid conflicts
+}
+else
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    builder.Services.AddDbContext<SudokuDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
 
 // Register repositories
 builder.Services.AddScoped<IGameSessionRepository, GameSessionRepository>();
