@@ -1,6 +1,7 @@
 @page "/puzzle/{SessionId:guid}"
 @inject ApiService ApiService
 @inject AuthService AuthService
+@inject BoardValidator BoardValidator
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @attribute [Authorize]
@@ -174,6 +175,7 @@
         border-right: 2px solid #333;
     }
 
+    /* Bottom borders for rows 3 and 6 (after cells 27 and 54) */
     .sudoku-cell:nth-child(n+19):nth-child(-n+27),
     .sudoku-cell:nth-child(n+46):nth-child(-n+54) {
         border-bottom: 2px solid #333;
@@ -262,8 +264,24 @@
         {
             if (puzzleData != null && puzzleData.InitialCells[selectedCell] == 0)
             {
-                currentBoard[selectedCell] = value;
-                StateHasChanged();
+                // If clearing the cell (value = 0), allow it
+                if (value == 0)
+                {
+                    currentBoard[selectedCell] = value;
+                    StateHasChanged();
+                    return;
+                }
+
+                // Validate the placement
+                if (BoardValidator.IsValidPlacement(currentBoard, selectedCell, value))
+                {
+                    currentBoard[selectedCell] = value;
+                    StateHasChanged();
+                }
+                else
+                {
+                    Snackbar.Add("Invalid move! This number conflicts with Sudoku rules.", Severity.Warning);
+                }
             }
         }
     }
@@ -314,8 +332,22 @@
 
     private async Task CheckSolution()
     {
-        // Simple completion check - all cells filled
-        if (currentBoard.All(c => c != 0))
+        // Check if all cells are filled
+        if (!currentBoard.All(c => c != 0))
+        {
+            Snackbar.Add("Please fill in all cells before checking", Severity.Info);
+            return;
+        }
+
+        // Validate the solution using BoardValidator
+        if (!BoardValidator.IsSolved(currentBoard))
+        {
+            Snackbar.Add("Puzzle solution is incorrect. Keep trying!", Severity.Warning);
+            return;
+        }
+
+        // Solution is valid, complete the session
+        try
         {
             var result = await ApiService.CompleteSessionAsync(SessionId);
             
@@ -326,12 +358,12 @@
             }
             else
             {
-                Snackbar.Add("Puzzle solution is incorrect. Keep trying!", Severity.Warning);
+                Snackbar.Add("Error completing session. Please try again.", Severity.Error);
             }
         }
-        else
+        catch (Exception ex)
         {
-            Snackbar.Add("Please fill in all cells before checking", Severity.Info);
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
 }
