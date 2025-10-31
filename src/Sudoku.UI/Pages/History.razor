@@ -1,0 +1,189 @@
+@page "/history"
+@inject AuthService AuthService
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudText Typo="Typo.h3" Class="mb-6">
+        Puzzle History
+    </MudText>
+
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+        <MudText>Loading history...</MudText>
+    }
+    else if (completedSessions == null || !completedSessions.Any())
+    {
+        <MudPaper Elevation="3" Class="pa-8 text-center">
+            <MudIcon Icon="@Icons.Material.Filled.History" Size="Size.Large" Color="Color.Secondary" />
+            <MudText Typo="Typo.h5" Class="mt-4">No Completed Puzzles Yet</MudText>
+            <MudText Typo="Typo.body1" Class="mt-2 mb-4">
+                Start solving puzzles to build your history!
+            </MudText>
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary"
+                       Href="/dashboard"
+                       StartIcon="@Icons.Material.Filled.Dashboard">
+                Go to Dashboard
+            </MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudTable Items="@completedSessions" Hover="true" Breakpoint="Breakpoint.Sm">
+            <HeaderContent>
+                <MudTh>Puzzle ID</MudTh>
+                <MudTh>Started</MudTh>
+                <MudTh>Completed</MudTh>
+                <MudTh>Duration</MudTh>
+                <MudTh>Status</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Puzzle ID">@context.PuzzleId.ToString().Substring(0, 8)...</MudTd>
+                <MudTd DataLabel="Started">@context.StartedAt.ToLocalTime().ToString("g")</MudTd>
+                <MudTd DataLabel="Completed">
+                    @if (context.CompletedAt.HasValue)
+                    {
+                        @context.CompletedAt.Value.ToLocalTime().ToString("g")
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </MudTd>
+                <MudTd DataLabel="Duration">
+                    @if (context.CompletedAt.HasValue)
+                    {
+                        var duration = context.CompletedAt.Value - context.StartedAt;
+                        @($"{duration.Hours}h {duration.Minutes}m")
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Color="@GetStatusColor(context.Status)" Size="Size.Small">
+                        @context.Status
+                    </MudChip>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[] { 10, 25, 50 }" />
+            </PagerContent>
+        </MudTable>
+
+        <MudPaper Elevation="3" Class="pa-4 mt-4">
+            <MudText Typo="Typo.h6" Class="mb-2">Summary Statistics</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudText Typo="Typo.body2">Total Completed:</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">@completedSessions.Count</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText Typo="Typo.body2">Average Completion Time:</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Secondary">
+                        @GetAverageTime()
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText Typo="Typo.body2">Fastest Solve:</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Tertiary">
+                        @GetFastestTime()
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private List<GameSession>? completedSessions;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistory();
+    }
+
+    private async Task LoadHistory()
+    {
+        if (AuthService.CurrentUser == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        isLoading = true;
+
+        try
+        {
+            completedSessions = await ApiService.GetUserHistoryAsync(AuthService.CurrentUser.UserId);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading history: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status.ToLower() switch
+        {
+            "completed" => Color.Success,
+            "in-progress" => Color.Info,
+            _ => Color.Default
+        };
+    }
+
+    private string GetAverageTime()
+    {
+        if (completedSessions == null || !completedSessions.Any())
+            return "N/A";
+
+        var completedWithTime = completedSessions
+            .Where(s => s.CompletedAt.HasValue)
+            .ToList();
+
+        if (!completedWithTime.Any())
+            return "N/A";
+
+        var avgMinutes = completedWithTime
+            .Select(s => (s.CompletedAt!.Value - s.StartedAt).TotalMinutes)
+            .Average();
+
+        var hours = (int)(avgMinutes / 60);
+        var minutes = (int)(avgMinutes % 60);
+
+        return $"{hours}h {minutes}m";
+    }
+
+    private string GetFastestTime()
+    {
+        if (completedSessions == null || !completedSessions.Any())
+            return "N/A";
+
+        var completedWithTime = completedSessions
+            .Where(s => s.CompletedAt.HasValue)
+            .ToList();
+
+        if (!completedWithTime.Any())
+            return "N/A";
+
+        var fastest = completedWithTime
+            .Select(s => s.CompletedAt!.Value - s.StartedAt)
+            .Min();
+
+        var hours = (int)fastest.TotalHours;
+        var minutes = (int)fastest.TotalMinutes % 60;
+
+        return $"{hours}h {minutes}m";
+    }
+}

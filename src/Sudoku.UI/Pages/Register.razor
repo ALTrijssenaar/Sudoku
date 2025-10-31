@@ -1,0 +1,95 @@
+@page "/register"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="3" Class="pa-6 mt-8">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
+            Create Account
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">
+            Sign up to start playing Sudoku
+        </MudText>
+
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            
+            <MudTextField @bind-Value="registerModel.Email" 
+                          Label="Email" 
+                          Variant="Variant.Outlined" 
+                          Required="true"
+                          InputType="InputType.Email"
+                          Class="mb-4" />
+            
+            <MudTextField @bind-Value="registerModel.DisplayName" 
+                          Label="Display Name (Optional)" 
+                          Variant="Variant.Outlined"
+                          Class="mb-4" />
+            
+            <MudTextField @bind-Value="registerModel.Password" 
+                          Label="Password" 
+                          Variant="Variant.Outlined" 
+                          Required="true"
+                          InputType="InputType.Password"
+                          Class="mb-4" />
+            
+            <MudButton ButtonType="ButtonType.Submit" 
+                       Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true"
+                       Disabled="@isProcessing"
+                       Class="mt-4">
+                @if (isProcessing)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Registering...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </MudButton>
+        </EditForm>
+
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.body2" Align="Align.Center">
+            Already have an account? 
+            <MudLink Href="/login">Login here</MudLink>
+        </MudText>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private RegisterRequest registerModel = new();
+    private bool isProcessing = false;
+
+    private async Task HandleRegister()
+    {
+        isProcessing = true;
+        
+        try
+        {
+            var success = await AuthService.RegisterAsync(registerModel);
+            
+            if (success)
+            {
+                Snackbar.Add("Registration successful! Welcome to Sudoku Platform!", Severity.Success);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                Snackbar.Add("Registration failed. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+}

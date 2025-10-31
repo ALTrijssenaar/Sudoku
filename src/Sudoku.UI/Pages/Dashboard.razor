@@ -1,0 +1,221 @@
+@page "/dashboard"
+@inject AuthService AuthService
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudText Typo="Typo.h3" Class="mb-6">
+        Welcome, @(AuthService.CurrentUser?.DisplayName ?? "Player")!
+    </MudText>
+
+    <MudGrid>
+        <!-- Start New Game Card -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">Start New Game</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Games" Color="Color.Primary" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body1" Class="mb-4">
+                        Select a difficulty level to start a new puzzle:
+                    </MudText>
+                    
+                    <MudStack Spacing="2">
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Success" 
+                                   FullWidth="true"
+                                   OnClick="@(() => StartNewGame("Easy"))"
+                                   StartIcon="@Icons.Material.Filled.SentimentSatisfied">
+                            Easy
+                        </MudButton>
+                        
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Warning" 
+                                   FullWidth="true"
+                                   OnClick="@(() => StartNewGame("Medium"))"
+                                   StartIcon="@Icons.Material.Filled.SentimentNeutral">
+                            Medium
+                        </MudButton>
+                        
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Error" 
+                                   FullWidth="true"
+                                   OnClick="@(() => StartNewGame("Hard"))"
+                                   StartIcon="@Icons.Material.Filled.SentimentVeryDissatisfied">
+                            Hard
+                        </MudButton>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Active Sessions Card -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">Active Sessions</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Primary" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (isLoadingSessions)
+                    {
+                        <MudProgressCircular Indeterminate="true" />
+                    }
+                    else if (activeSessions == null || !activeSessions.Any())
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            No active sessions. Start a new game to begin!
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="2">
+                            @foreach (var session in activeSessions)
+                            {
+                                <MudPaper Elevation="1" Class="pa-3">
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                        <MudText>Session started @session.StartedAt.ToLocalTime().ToString("g")</MudText>
+                                        <MudButton Size="Size.Small" 
+                                                   Variant="Variant.Text" 
+                                                   Color="Color.Primary"
+                                                   OnClick="@(() => ResumeSession(session.Id))">
+                                            Resume
+                                        </MudButton>
+                                    </MudStack>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Statistics Card -->
+        <MudItem xs="12">
+            <MudCard Elevation="3">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">Your Statistics</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.BarChart" Color="Color.Primary" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudGrid>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Elevation="0" Class="pa-4 text-center">
+                                <MudText Typo="Typo.h4" Color="Color.Primary">0</MudText>
+                                <MudText Typo="Typo.body2">Puzzles Completed</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Elevation="0" Class="pa-4 text-center">
+                                <MudText Typo="Typo.h4" Color="Color.Secondary">0</MudText>
+                                <MudText Typo="Typo.body2">Active Sessions</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Elevation="0" Class="pa-4 text-center">
+                                <MudText Typo="Typo.h4" Color="Color.Tertiary">N/A</MudText>
+                                <MudText Typo="Typo.body2">Average Time</MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text" 
+                               Color="Color.Primary"
+                               Href="/history">
+                        View Full History
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<GameSession>? activeSessions;
+    private bool isLoadingSessions = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActiveSessions();
+    }
+
+    private async Task LoadActiveSessions()
+    {
+        if (AuthService.CurrentUser == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        isLoadingSessions = true;
+        
+        try
+        {
+            var allSessions = await ApiService.GetUserSessionsAsync(AuthService.CurrentUser.UserId);
+            activeSessions = allSessions?.Where(s => s.Status == "in-progress").ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading sessions: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoadingSessions = false;
+        }
+    }
+
+    private async Task StartNewGame(string difficulty)
+    {
+        try
+        {
+            // Get or create a puzzle of the selected difficulty
+            var puzzles = await ApiService.GetPuzzlesAsync(difficulty);
+            
+            if (puzzles == null || !puzzles.Any())
+            {
+                Snackbar.Add("Failed to load puzzle. Please try again.", Severity.Error);
+                return;
+            }
+
+            var puzzle = puzzles.First();
+            
+            // Create a new session for this puzzle
+            var session = await ApiService.CreateSessionAsync(puzzle.Id);
+            
+            if (session != null)
+            {
+                Snackbar.Add($"Starting new {difficulty} puzzle!", Severity.Success);
+                Navigation.NavigateTo($"/puzzle/{session.Id}");
+            }
+            else
+            {
+                Snackbar.Add("Failed to start game. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void ResumeSession(Guid sessionId)
+    {
+        Navigation.NavigateTo($"/puzzle/{sessionId}");
+    }
+}
