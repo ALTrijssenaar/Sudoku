@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/dotnet:9.0
+    volumes:
+      - ..:/workspace:cached
+    network_mode: service:postgres
+    command: sleep infinity
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DB_HOST=localhost
+      - DB_PORT=5432
+      - DB_NAME=sudoku
+      - DB_USER=sudoku_user
+      - DB_PASSWORD=sudoku_password
+      - JWT_SECRET=dev-secret-key-change-in-production-min-32-chars-long
+      - JWT_ISSUER=SudokuApi
+      - JWT_AUDIENCE=SudokuClient
+      - JWT_EXPIRY_MINUTES=60

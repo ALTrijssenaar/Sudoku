@@ -1,4 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using Sudoku.Core.Repositories;
+using Sudoku.Infrastructure.Data;
+using Sudoku.Infrastructure.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure database connection
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<SudokuDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Register repositories
+builder.Services.AddScoped<IGameSessionRepository, GameSessionRepository>();
 
 // Add services to the container
 builder.Services.AddControllers();

@@ -10,22 +10,22 @@ OpenAPI: `specs/1-sudoku-platform/contracts/openapi.yaml`
 
 ## Phase 1 - Setup (project initialization)
 
-- [ ] T001 Create .NET solution and projects at `src/` (src/Sudoku.sln, src/Sudoku.Api/, src/Sudoku.Core/, src/Sudoku.Infrastructure/) — create project files and add to solution
-- [ ] T002 Add `docker-compose.yml` at repository root to run Postgres for local development (service: postgres, volume, env file reference)
-- [ ] T003 Create `.env.sample` at repository root containing DB connection variables and JWT secrets (`.env.sample`)
-- [ ] T004 Add `src/Sudoku.Api/Program.cs` and minimal launch settings to host API locally (HTTPS and HTTP endpoints)
+- [x] T001 Create .NET solution and projects at `src/` (src/Sudoku.sln, src/Sudoku.Api/, src/Sudoku.Core/, src/Sudoku.Infrastructure/) — create project files and add to solution
+- [x] T002 Add `docker-compose.yml` at repository root to run Postgres for local development (service: postgres, volume, env file reference)
+- [x] T003 Create `.env.sample` at repository root containing DB connection variables and JWT secrets (`.env.sample`)
+- [x] T004 Add `src/Sudoku.Api/Program.cs` and minimal launch settings to host API locally (HTTPS and HTTP endpoints)
 
 ## Phase 2 - Foundational (blocking prerequisites)
 
-- [ ] T005 [P] Create EF Core `SudokuDbContext` in `src/Sudoku.Infrastructure/Data/SudokuDbContext.cs` and register it in `src/Sudoku.Api/Program.cs`
-- [ ] T006 [P] Create `User` entity in `src/Sudoku.Core/Entities/User.cs` (fields: id, email, displayName, passwordHash, createdAt)
-- [ ] T007 [P] Create `SudokuPuzzle` entity in `src/Sudoku.Core/Entities/SudokuPuzzle.cs` (fields: id, difficulty, initialCells jsonb, solution jsonb, generatedAt)
-- [ ] T008 [P] Create `GameSession` entity in `src/Sudoku.Core/Entities/GameSession.cs` (fields: id, userId, puzzleId, currentState jsonb, startedAt, lastSavedAt, completedAt, status)
-- [ ] T009 [P] Add EF Core entity configurations (Fluent API) in `src/Sudoku.Infrastructure/Mapping/*` to enforce JSONB length and value constraints
-- [ ] T010 Create initial EF Core migration scaffolding in `src/Sudoku.Infrastructure/Migrations/` (add a migration file or script at `scripts/create-initial-migration.ps1`)
-- [ ] T011 Create seed data for puzzles in `src/Sudoku.Infrastructure/Data/SeedPuzzles/` (add one sample JSON puzzle per difficulty)
-- [ ] T012 Add a DB repository interface for `GameSession` in `src/Sudoku.Core/Repositories/IGameSessionRepository.cs` and an implementation in `src/Sudoku.Infrastructure/Repositories/GameSessionRepository.cs`
-- [ ] T013 Add configuration and secrets binding for JWT and DB in `src/Sudoku.Api/appsettings.Development.json` and read from `.env`
+- [x] T005 [P] Create EF Core `SudokuDbContext` in `src/Sudoku.Infrastructure/Data/SudokuDbContext.cs` and register it in `src/Sudoku.Api/Program.cs`
+- [x] T006 [P] Create `User` entity in `src/Sudoku.Core/Entities/User.cs` (fields: id, email, displayName, passwordHash, createdAt)
+- [x] T007 [P] Create `SudokuPuzzle` entity in `src/Sudoku.Core/Entities/SudokuPuzzle.cs` (fields: id, difficulty, initialCells jsonb, solution jsonb, generatedAt)
+- [x] T008 [P] Create `GameSession` entity in `src/Sudoku.Core/Entities/GameSession.cs` (fields: id, userId, puzzleId, currentState jsonb, startedAt, lastSavedAt, completedAt, status)
+- [x] T009 [P] Add EF Core entity configurations (Fluent API) in `src/Sudoku.Infrastructure/Mapping/*` to enforce JSONB length and value constraints
+- [x] T010 Create initial EF Core migration scaffolding in `src/Sudoku.Infrastructure/Migrations/` (add a migration file or script at `scripts/create-initial-migration.ps1`)
+- [x] T011 Create seed data for puzzles in `src/Sudoku.Infrastructure/Data/SeedPuzzles/` (add one sample JSON puzzle per difficulty)
+- [x] T012 Add a DB repository interface for `GameSession` in `src/Sudoku.Core/Repositories/IGameSessionRepository.cs` and an implementation in `src/Sudoku.Infrastructure/Repositories/GameSessionRepository.cs`
+- [x] T013 Add configuration and secrets binding for JWT and DB in `src/Sudoku.Api/appsettings.Development.json` and read from `.env`
 
 ## Phase 3 - User Story 1 (P1): Start and Solve a Puzzle
 Goal: Allow a signed-in user to start a puzzle at a selected difficulty and solve it with live validation.
