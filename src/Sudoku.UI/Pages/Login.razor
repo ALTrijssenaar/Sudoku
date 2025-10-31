@@ -1,0 +1,90 @@
+@page "/login"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="3" Class="pa-6 mt-8">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
+            Welcome Back
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">
+            Login to continue playing Sudoku
+        </MudText>
+
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            
+            <MudTextField @bind-Value="loginModel.Email" 
+                          Label="Email" 
+                          Variant="Variant.Outlined" 
+                          Required="true"
+                          InputType="InputType.Email"
+                          Class="mb-4" />
+            
+            <MudTextField @bind-Value="loginModel.Password" 
+                          Label="Password" 
+                          Variant="Variant.Outlined" 
+                          Required="true"
+                          InputType="InputType.Password"
+                          Class="mb-4" />
+            
+            <MudButton ButtonType="ButtonType.Submit" 
+                       Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       FullWidth="true"
+                       Disabled="@isProcessing"
+                       Class="mt-4">
+                @if (isProcessing)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Logging in...</span>
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </MudButton>
+        </EditForm>
+
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.body2" Align="Align.Center">
+            Don't have an account? 
+            <MudLink Href="/register">Register here</MudLink>
+        </MudText>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginRequest loginModel = new();
+    private bool isProcessing = false;
+
+    private async Task HandleLogin()
+    {
+        isProcessing = true;
+        
+        try
+        {
+            var success = await AuthService.LoginAsync(loginModel);
+            
+            if (success)
+            {
+                Snackbar.Add($"Welcome back, {AuthService.CurrentUser?.DisplayName}!", Severity.Success);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                Snackbar.Add("Login failed. Please check your credentials.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+}

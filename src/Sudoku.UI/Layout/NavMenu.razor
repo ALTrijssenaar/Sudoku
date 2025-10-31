@@ -1,7 +1,26 @@
-﻿<MudNavMenu>
+﻿@inject AuthService AuthService
+@inject ISnackbar Snackbar
+
+<MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
-    <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
-    <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="/history" Icon="@Icons.Material.Filled.History">History</MudNavLink>
+    
+    <AuthorizeView>
+        <NotAuthorized>
+            <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+            <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+        </NotAuthorized>
+        <Authorized>
+            <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="/history" Icon="@Icons.Material.Filled.History">History</MudNavLink>
+            <MudNavLink OnClick="HandleLogout" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
 </MudNavMenu>
+
+@code {
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        Snackbar.Add("Logged out successfully", Severity.Info);
+    }
+}
