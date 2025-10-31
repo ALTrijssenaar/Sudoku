@@ -77,6 +77,20 @@ An individual user platform to solve Sudoku games built with .NET, PostgreSQL, a
 
 5. Access Swagger UI at: `https://localhost:5001/swagger` or `http://localhost:5000/swagger`
 
+### Running the UI
+
+To run the Blazor WebAssembly UI:
+
+1. Ensure the API is running (see above)
+
+2. In a new terminal, run the UI:
+   ```bash
+   cd src/Sudoku.UI
+   dotnet run
+   ```
+
+3. Access the UI at: `https://localhost:7001` or `http://localhost:7000`
+
 ## Project Structure
 
 ```
@@ -90,12 +104,17 @@ src/
 │   ├── Entities/                # Domain entities
 │   ├── Repositories/            # Repository interfaces
 │   └── Services/                # Service interfaces
-└── Sudoku.Infrastructure/       # Data access and services
-    ├── Data/                    # DbContext and seed data
-    ├── Mapping/                 # EF Core configurations
-    ├── Migrations/              # Database migrations
-    ├── Repositories/            # Repository implementations
-    └── Services/                # Service implementations
+├── Sudoku.Infrastructure/       # Data access and services
+│   ├── Data/                    # DbContext and seed data
+│   ├── Mapping/                 # EF Core configurations
+│   ├── Migrations/              # Database migrations
+│   ├── Repositories/            # Repository implementations
+│   └── Services/                # Service implementations
+└── Sudoku.UI/                   # Blazor WebAssembly UI
+    ├── Pages/                   # UI pages and components
+    ├── Layout/                  # Layout components
+    ├── Program.cs              # Application entry point
+    └── wwwroot/                # Static assets
 ```
 
 ## Configuration
