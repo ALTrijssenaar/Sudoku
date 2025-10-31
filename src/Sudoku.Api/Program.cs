@@ -1,8 +1,13 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Sudoku.Core.Repositories;
+using Sudoku.Core.Security;
 using Sudoku.Core.Services;
 using Sudoku.Infrastructure.Data;
 using Sudoku.Infrastructure.Repositories;
+using Sudoku.Infrastructure.Security;
 using Sudoku.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,10 +28,38 @@ else
 // Register repositories
 builder.Services.AddScoped<IGameSessionRepository, GameSessionRepository>();
 builder.Services.AddScoped<IPuzzleRepository, PuzzleRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Register services
 builder.Services.AddScoped<IPuzzleGenerator, PuzzleGenerator>();
 builder.Services.AddScoped<BoardValidator>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+// Configure JWT Authentication
+var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SudokuApi";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SudokuClient";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+    };
+});
+
+builder.Services.AddAuthorization();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -50,6 +83,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
