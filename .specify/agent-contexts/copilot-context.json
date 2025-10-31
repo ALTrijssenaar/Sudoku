@@ -1,0 +1,7 @@
+{
+  "agent": "copilot",
+  "technologies": [
+    "dotnet", "aspnet-core", "ef-core", "npgsql", "postgresql", "swagger", "openapi"
+  ],
+  "notes": "Context added for implementing Sudoku API using .NET, EF Core with Npgsql, Swagger/OpenAPI, and PostgreSQL. Keep responses focused on .NET and Postgres best practices."
+}

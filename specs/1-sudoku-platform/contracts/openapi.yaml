@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: Sudoku API
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                displayName:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Validation error
+  /api/auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+  /api/puzzles:
+    get:
+      summary: List puzzles by difficulty
+      parameters:
+        - in: query
+          name: difficulty
+          schema:
+            type: string
+            enum: [Easy, Medium, Hard]
+      responses:
+        '200':
+          description: A list of puzzles
+  /api/puzzles/{id}:
+    get:
+      summary: Get puzzle by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Puzzle
+  /api/sessions:
+    post:
+      summary: Create a new session from puzzleId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [puzzleId]
+              properties:
+                puzzleId:
+                  type: string
+      responses:
+        '201':
+          description: Session created
+  /api/sessions/{id}:
+    get:
+      summary: Get session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session
+  /api/sessions/{id}/cell:
+    patch:
+      summary: Update single cell in session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [row, col, value]
+              properties:
+                row:
+                  type: integer
+                  minimum: 0
+                  maximum: 8
+                col:
+                  type: integer
+                  minimum: 0
+                  maximum: 8
+                value:
+                  type: integer
+                  minimum: 0
+                  maximum: 9
+      responses:
+        '200':
+          description: Updated
+  /api/users/{userId}/history:
+    get:
+      summary: Get user puzzle history
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: History list
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
