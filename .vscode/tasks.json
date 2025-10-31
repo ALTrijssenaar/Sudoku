@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Restore NuGet Packages",
+      "label": "RestoreNuGetPackages",
       "type": "shell",
       "command": "dotnet",
       "args": ["restore", "${workspaceFolder}/src/Sudoku.sln"],
@@ -10,7 +10,7 @@
       "group": "build"
     },
     {
-      "label": "Build Solution",
+      "label": "BuildSolution",
       "type": "shell",
       "command": "dotnet",
       "args": ["build", "${workspaceFolder}/src/Sudoku.sln", "--no-restore"],
@@ -22,14 +22,14 @@
       "dependsOn": "dotnet: restore"
     },
     {
-      "label": "Clean Solution",
+      "label": "CleanSolution",
       "type": "shell",
       "command": "dotnet",
       "args": ["clean", "${workspaceFolder}/src/Sudoku.sln"],
       "problemMatcher": []
     },
     {
-      "label": "Run Tests",
+      "label": "RunTests",
       "type": "shell",
       "command": "dotnet",
       "args": ["test", "${workspaceFolder}/src/Sudoku.sln"],
@@ -40,7 +40,7 @@
       }
     },
     {
-      "label": "Ensure Dev Certificate",
+      "label": "EnsureDevCertificate",
       "type": "shell",
       "command": "bash",
       "args": [
@@ -55,7 +55,7 @@
       }
     },
     {
-      "label": "Ensure Ports Free",
+      "label": "EnsurePortsFree",
       "type": "shell",
       "command": "bash",
       "args": [
@@ -70,13 +70,13 @@
       }
     },
     {
-      "label": "Prepare Debug Environment",
+      "label": "PrepareDebugEnvironment",
       "dependsOn": ["ensure-dev-cert", "ensure-ports-free", "dotnet: build"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     },
     {
-      "label": "Start Backend API",
+      "label": "StartBackendApi",
       "type": "shell",
       "command": "dotnet",
       "args": [
@@ -114,7 +114,21 @@
     },
 
     {
-      "label": "Start Frontend UI",
+      "label": "FreeUiPort",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "pid=$(lsof -ti:5271); if [ -n \"$pid\" ]; then kill -9 $pid; fi"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "StartFrontendUi",
       "type": "shell",
       "command": "dotnet",
       "args": [
@@ -123,6 +137,7 @@
         "${workspaceFolder}/src/Sudoku.UI"
       ],
       "isBackground": true,
+      "dependsOn": "Free UI Port",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -143,7 +158,7 @@
       }
     }
     {
-      "label": "Watch Backend API",
+      "label": "WatchBackendApi",
       "type": "shell",
       "command": "dotnet",
       "args": [

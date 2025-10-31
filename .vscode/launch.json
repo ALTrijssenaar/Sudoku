@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Start Backend API",
+      "name": "Start API",
       "type": "coreclr",
       "request": "launch",
-      "preLaunchTask": "prelaunch: prepare debug",
+      "preLaunchTask": "PrepareDebugEnvironment",
       "program": "${workspaceFolder}/src/Sudoku.Api/bin/Debug/net9.0/Sudoku.Api.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/Sudoku.Api",
@@ -31,12 +31,12 @@
       "request": "attach"
     },
     {
-      "name": "Start Frontend UI",
+      "name": "Start UI",
       "type": "coreclr",
       "request": "launch",
-      "preLaunchTask": "Start Frontend UI",
-      "program": "${workspaceFolder}/src/Sudoku.UI/bin/Debug/net9.0/Sudoku.UI.dll",
-      "args": [],
+      "preLaunchTask": "FreeUiPort",
+      "program": "dotnet",
+      "args": ["run"],
       "cwd": "${workspaceFolder}/src/Sudoku.UI",
       "stopAtEntry": false,
       "console": "integratedTerminal",
@@ -51,10 +51,10 @@
   ],
   "compounds": [
     {
-      "name": "Start Backend & Frontend Together",
+      "name": "Start UI & API",
       "configurations": [
-        "Start Backend API",
-        "Start Frontend UI"
+        "Start API",
+        "Start UI"
       ]
     }
   ]
