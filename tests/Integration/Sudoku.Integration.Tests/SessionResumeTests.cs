@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Sudoku.Api.Models;
 
@@ -13,14 +14,42 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
         _factory = factory;
     }
 
+    private async Task<string> GetAuthTokenAsync(HttpClient client)
+    {
+        var registerRequest = new RegisterRequest
+        {
+            Email = $"test{Guid.NewGuid()}@example.com",
+            Password = "TestPassword123",
+            DisplayName = "Test User"
+        };
+
+        var registerResponse = await client.PostAsJsonAsync("/api/auth/register", registerRequest);
+        registerResponse.EnsureSuccessStatusCode();
+        var authResponse = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
+        
+        Assert.NotNull(authResponse);
+        Assert.NotNull(authResponse.Token);
+        
+        return authResponse.Token;
+    }
+
+    private HttpClient CreateAuthenticatedClient(string token)
+    {
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
+    }
+
     [Fact]
     public async Task UpdateCell_ValidMove_Success()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
 
         // Get a puzzle and create a session
-        var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Medium");
+        var puzzlesResponse = await unauthClient.GetAsync("/api/puzzles?difficulty=Medium");
         puzzlesResponse.EnsureSuccessStatusCode();
         var puzzles = await puzzlesResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
         Assert.NotNull(puzzles);
@@ -65,7 +94,9 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
     public async Task UpdateCell_InvalidRow_ReturnsBadRequest()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
         
         var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Easy");
         var puzzles = await puzzlesResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
@@ -90,7 +121,9 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
     public async Task UpdateCell_InvalidColumn_ReturnsBadRequest()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
         
         var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Easy");
         var puzzles = await puzzlesResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
@@ -115,7 +148,9 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
     public async Task UpdateCell_InvalidValue_ReturnsBadRequest()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
         
         var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Easy");
         var puzzles = await puzzlesResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
@@ -155,7 +190,9 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
     public async Task UpdateCell_InitialCell_ReturnsBadRequest()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
         
         var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Easy");
         var puzzles = await puzzlesResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
@@ -196,7 +233,9 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
     public async Task ResumeSession_AfterCellUpdates_ReturnsUpdatedState()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
 
         // Get a puzzle and create a session
         var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Medium");
@@ -263,7 +302,9 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
     public async Task UpdateCell_CompletedSession_ReturnsBadRequest()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
         
         var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Easy");
         var puzzles = await puzzlesResponse.Content.ReadFromJsonAsync<List<PuzzleResponse>>();
@@ -318,7 +359,9 @@ public class SessionResumeTests : IClassFixture<CustomWebApplicationFactory>
     public async Task UpdateCell_ClearCell_Success()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        var unauthClient = _factory.CreateClient();
+        var token = await GetAuthTokenAsync(unauthClient);
+        var client = CreateAuthenticatedClient(token);
 
         // Get a puzzle and create a session
         var puzzlesResponse = await client.GetAsync("/api/puzzles?difficulty=Easy");
