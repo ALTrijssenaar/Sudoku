@@ -28,7 +28,12 @@ bld/
 
 # Visual Studio
 .vs/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vscode/.env
+certs/
 *.rsuser
 *.suo
 *.user

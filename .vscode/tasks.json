@@ -1,0 +1,303 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dotnet: restore",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["restore", "${workspaceFolder}/src/Sudoku.sln"],
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "dotnet: build",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["build", "${workspaceFolder}/src/Sudoku.sln", "--no-restore"],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "dotnet: restore"
+    },
+    {
+      "label": "dotnet: clean",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["clean", "${workspaceFolder}/src/Sudoku.sln"],
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet: test",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["test", "${workspaceFolder}/src/Sudoku.sln"],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "ensure-dev-cert",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "set -e; if [ -z \"${SUDOKU_DEV_CERT_PASSWORD:-}\" ]; then echo 'ERROR: SUDOKU_DEV_CERT_PASSWORD not set. Create .vscode/.env from .env.template'; exit 2; fi; mkdir -p \"${workspaceFolder}/certs\"; pfx=\"${workspaceFolder}/certs/aspnetcore-devcert.pfx\"; if [ ! -f \"$pfx\" ]; then dotnet dev-certs https -ep \"$pfx\" -p \"$SUDOKU_DEV_CERT_PASSWORD\" && echo 'Dev cert exported to' $pfx; else echo 'Dev cert exists'; fi"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "ensure-ports-free",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "for port in 5000 5001; do pid=$(ss -ltnp 2>/dev/null | awk -v p=\":$port\" '$4 ~ p {match($0,/pid=([0-9]+)/,a); print a[1]; exit}'); if [ -n \"$pid\" ]; then cmd=$(ps -p \"$pid\" -o comm= 2>/dev/null || echo unknown); if echo \"$cmd\" | grep -Eiq 'dotnet|Sudoku'; then echo \"Stopping $cmd (PID $pid) on port $port\"; kill -9 \"$pid\" 2>/dev/null || true; else echo \"WARNING: Port $port used by $cmd (PID $pid). Please stop it manually.\"; exit 1; fi; fi; done; echo 'Ports 5000/5001 are free'"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "prelaunch: prepare debug",
+      "dependsOn": ["ensure-dev-cert", "ensure-ports-free", "dotnet: build"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "dotnet: run API",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--no-launch-profile",
+        "--project",
+        "${workspaceFolder}/src/Sudoku.Api",
+        "--urls",
+        "https://localhost:5001;http://localhost:5000"
+      ],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/aspnetcore-devcert.pfx",
+          "ASPNETCORE_Kestrel__Certificates__Default__Password": "${env:SUDOKU_DEV_CERT_PASSWORD}"
+        }
+      },
+      "problemMatcher": {
+        "owner": "csharp",
+        "pattern": {
+          "regexp": "^.*$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Building.*$",
+          "endsPattern": "^.*Now listening on.*$|^.*Application started.*$"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "dotnet: watch API",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "watch",
+        "run",
+        "--no-launch-profile",
+        "--project",
+        "${workspaceFolder}/src/Sudoku.Api",
+        "--urls",
+        "https://localhost:5001;http://localhost:5000"
+      ],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/aspnetcore-devcert.pfx",
+          "ASPNETCORE_Kestrel__Certificates__Default__Password": "${env:SUDOKU_DEV_CERT_PASSWORD}"
+        }
+      },
+      "problemMatcher": {
+        "owner": "csharp",
+        "pattern": {
+          "regexp": "^.*$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*dotnet watch.*$|^.*Building.*$",
+          "endsPattern": "^.*Now listening on.*$|^.*Application started.*$"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dotnet: restore",
+      "type": "shell",
+      "command": "dotnet restore",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "dotnet: build",
+      "type": "shell",
+      "command": "dotnet build",
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "dotnet: test",
+      "type": "shell",
+      "command": "dotnet test",
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "ensure-dev-cert",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-lc", "mkdir -p ${workspaceFolder}/certs && if [ ! -f ${workspaceFolder}/certs/aspnetcore-devcert.pfx ]; then dotnet dev-certs https -ep ${workspaceFolder}/certs/aspnetcore-devcert.pfx -p Password123 && echo 'Exported dev cert to certs/aspnetcore-devcert.pfx'; else echo 'Dev cert already exists'; fi"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "ensure-ports-free",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "for p in 5000 5001; do\n  pid=$(ss -ltnp 2>/dev/null | awk -v port=\":$p\" '$4 ~ port { match($0, /pid=[0-9]+/, m); if (m[0]) { sub(/pid=/,\"\",m[0]); gsub(/,.*/,\"\",m[0]); print m[0]; exit } }');\n  if [ -n \"$pid\" ]; then\n    cmd=$(ps -p $pid -o comm= 2>/dev/null || true)\n    if echo \"$cmd\" | grep -Eiq 'dotnet|Sudoku'; then\n      echo "Killing process $pid ($cmd) using port $p"; kill -9 $pid || true\n    else\n      echo "Port $p used by $cmd ($pid) - leaving it alone"\n    fi\n  fi\ndone"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "prelaunch: prepare debug",
+      "dependsOn": [
+        "ensure-ports-free",
+        "dotnet: build"
+      ],
+      "dependsOrder": "sequence",
+      "runInBackground": false
+    },
+    {
+      "label": "ensure-dev-cert",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-lc", "mkdir -p ${workspaceFolder}/certs && if [ ! -f ${workspaceFolder}/certs/aspnetcore-devcert.pfx ]; then dotnet dev-certs https -ep ${workspaceFolder}/certs/aspnetcore-devcert.pfx -p Password123 && echo 'Exported dev cert to certs/aspnetcore-devcert.pfx'; else echo 'Dev cert already exists'; fi"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "dotnet: run API",
+      "type": "shell",
+      "command": "dotnet run --project src/Sudoku.Api",
+      "isBackground": true,
+      "dependsOn": "ensure-dev-cert",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        {
+          "label": "dotnet: run API",
+          "type": "shell",
+          "command": "dotnet",
+          "args": [
+            "run",
+            "--no-launch-profile",
+            "--project",
+            "${workspaceFolder}/src/Sudoku.Api",
+            "--urls",
+            "https://localhost:5001;http://localhost:5000"
+          ],
+          "isBackground": true,
+          "dependsOn": "ensure-dev-cert",
+          "options": {
+            "cwd": "${workspaceFolder}",
+            "env": {
+              "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/aspnetcore-devcert.pfx",
+              "ASPNETCORE_Kestrel__Certificates__Default__Password": "Password123",
+              "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+          },
+          "problemMatcher": [],
+          "presentation": {
+            "reveal": "always",
+            "panel": "dedicated"
+          }
+        },
+        {
+          "label": "dotnet: watch API",
+          "type": "shell",
+          "command": "dotnet",
+          "args": [
+            "watch",
+            "run",
+            "--no-launch-profile",
+            "--project",
+            "${workspaceFolder}/src/Sudoku.Api",
+            "--urls",
+            "https://localhost:5001;http://localhost:5000"
+          ],
+          "isBackground": true,
+          "dependsOn": "ensure-dev-cert",
+          "options": {
+            "cwd": "${workspaceFolder}",
+            "env": {
+              "ASPNETCORE_Kestrel__Certificates__Default__Path": "${workspaceFolder}/certs/aspnetcore-devcert.pfx",
+              "ASPNETCORE_Kestrel__Certificates__Default__Password": "Password123",
+              "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+          },
+          "problemMatcher": [],
+          "presentation": {
+            "reveal": "always",
+            "panel": "dedicated"
+          }
+        }
+          "ASPNETCORE_Kestrel__Certificates__Default__Password": "Password123",
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}
