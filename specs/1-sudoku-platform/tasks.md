@@ -31,14 +31,14 @@ OpenAPI: `specs/1-sudoku-platform/contracts/openapi.yaml`
 Goal: Allow a signed-in user to start a puzzle at a selected difficulty and solve it with live validation.
 Independent test: Register, login, POST /api/sessions with puzzleId or difficulty, receive session with board, submit cell updates, complete session.
 
-- [ ] T014 [US1] Create puzzle generator service interface `src/Sudoku.Core/Services/IPuzzleGenerator.cs`
-- [ ] T015 [US1] Implement puzzle generator `src/Sudoku.Infrastructure/Services/PuzzleGenerator.cs` that generates solvable puzzles and respects difficulty mapping
-- [ ] T016 [US1] Create `BoardValidator` service in `src/Sudoku.Core/Services/BoardValidator.cs` to validate cell entries and detect completion
-- [ ] T017 [US1] Implement `PuzzlesController` in `src/Sudoku.Api/Controllers/PuzzlesController.cs` with endpoints `GET /api/puzzles?difficulty=` and `GET /api/puzzles/{id}`
-- [ ] T018 [US1] Implement `SessionsController` in `src/Sudoku.Api/Controllers/SessionsController.cs` for `POST /api/sessions` (create session) and `POST /api/sessions/{id}/complete` (validate full board)
-- [ ] T019 [US1] Implement session persistence methods in `src/Sudoku.Infrastructure/Repositories/GameSessionRepository.cs` used by SessionsController
-- [ ] T020 [US1] Write unit tests for `PuzzleGenerator` and `BoardValidator` at `tests/Unit/Sudoku.Core.Tests/PuzzleGeneratorTests.cs` and `tests/Unit/Sudoku.Core.Tests/BoardValidatorTests.cs`
-- [ ] T021 [US1] Add integration test for session lifecycle at `tests/Integration/SessionLifecycleTests.cs` (register, login, start session, complete)
+- [x] T014 [US1] Create puzzle generator service interface `src/Sudoku.Core/Services/IPuzzleGenerator.cs`
+- [x] T015 [US1] Implement puzzle generator `src/Sudoku.Infrastructure/Services/PuzzleGenerator.cs` that generates solvable puzzles and respects difficulty mapping
+- [x] T016 [US1] Create `BoardValidator` service in `src/Sudoku.Core/Services/BoardValidator.cs` to validate cell entries and detect completion
+- [x] T017 [US1] Implement `PuzzlesController` in `src/Sudoku.Api/Controllers/PuzzlesController.cs` with endpoints `GET /api/puzzles?difficulty=` and `GET /api/puzzles/{id}`
+- [x] T018 [US1] Implement `SessionsController` in `src/Sudoku.Api/Controllers/SessionsController.cs` for `POST /api/sessions` (create session) and `POST /api/sessions/{id}/complete` (validate full board)
+- [x] T019 [US1] Implement session persistence methods in `src/Sudoku.Infrastructure/Repositories/GameSessionRepository.cs` used by SessionsController
+- [x] T020 [US1] Write unit tests for `PuzzleGenerator` and `BoardValidator` at `tests/Unit/Sudoku.Core.Tests/PuzzleGeneratorTests.cs` and `tests/Unit/Sudoku.Core.Tests/BoardValidatorTests.cs`
+- [x] T021 [US1] Add integration test for session lifecycle at `tests/Integration/SessionLifecycleTests.cs` (register, login, start session, complete)
 
 ## Phase 4 - User Story 2 (P2): Choose Difficulty and Resume
 Goal: Users can pick a difficulty and resume an in-progress puzzle later.
@@ -54,20 +54,20 @@ Independent test: Start a Medium puzzle, exit, login again, resume the session a
 Goal: Provide account registration/login and user history of completed puzzles.
 Independent test: Register, solve puzzles, query history and see completed sessions.
 
-- [ ] T027 [US3] Implement `AuthController` in `src/Sudoku.Api/Controllers/AuthController.cs` with `POST /api/auth/register` and `POST /api/auth/login` (JWT)
-- [ ] T028 [US3] Implement user creation & lookup in `src/Sudoku.Infrastructure/Repositories/UserRepository.cs` and password hashing in `src/Sudoku.Core/Security/PasswordHasher.cs`
-- [ ] T029 [US3] Implement `GET /api/users/{userId}/history` in `src/Sudoku.Api/Controllers/UsersController.cs` to return recent completed puzzles
-- [ ] T030 [US3] Add integration tests for auth and history at `tests/Integration/AuthAndHistoryTests.cs`
-- [ ] T031 [US3] Add seed user and migration helper at `src/Sudoku.Infrastructure/Data/SeedUsers/` for local dev
+- [x] T027 [US3] Implement `AuthController` in `src/Sudoku.Api/Controllers/AuthController.cs` with `POST /api/auth/register` and `POST /api/auth/login` (JWT)
+- [x] T028 [US3] Implement user creation & lookup in `src/Sudoku.Infrastructure/Repositories/UserRepository.cs` and password hashing in `src/Sudoku.Core/Security/PasswordHasher.cs`
+- [x] T029 [US3] Implement `GET /api/users/{userId}/history` in `src/Sudoku.Api/Controllers/UsersController.cs` to return recent completed puzzles
+- [x] T030 [US3] Add integration tests for auth and history at `tests/Integration/AuthAndHistoryTests.cs`
+- [x] T031 [US3] Add seed user and migration helper at `src/Sudoku.Infrastructure/Data/SeedUsers/` for local dev
 
 ## Final Phase - Polish & Cross-Cutting Concerns
 
-- [ ] T032 Add Swagger/OpenAPI (Swashbuckle) integration in `src/Sudoku.Api/Program.cs` and ensure OpenAPI at `/swagger`
-- [ ] T033 [P] Implement structured error handling middleware at `src/Sudoku.Api/Middleware/ErrorHandlingMiddleware.cs` and centralized validation response format
-- [ ] T034 [P] Implement logging configuration and correlation IDs in `src/Sudoku.Api/Logging/` and `appsettings.json`
-- [ ] T035 Add CI workflow at `.github/workflows/dotnet.yml` to build, test, and run integration tests using Docker Compose Postgres
-- [ ] T036 Add README and developer quickstart at `README.md` and reference `specs/1-sudoku-platform/plan/quickstart.md`
-- [ ] T037 Add a simple Postman collection or OpenAPI client at `docs/postman/` for manual testing
+- [x] T032 Add Swagger/OpenAPI (Swashbuckle) integration in `src/Sudoku.Api/Program.cs` and ensure OpenAPI at `/swagger`
+- [x] T033 [P] Implement structured error handling middleware at `src/Sudoku.Api/Middleware/ErrorHandlingMiddleware.cs` and centralized validation response format
+- [x] T034 [P] Implement logging configuration and correlation IDs in `src/Sudoku.Api/Logging/` and `appsettings.json`
+- [x] T035 Add CI workflow at `.github/workflows/dotnet.yml` to build, test, and run integration tests using Docker Compose Postgres
+- [x] T036 Add README and developer quickstart at `README.md` and reference `specs/1-sudoku-platform/plan/quickstart.md`
+- [x] T037 Add a simple Postman collection or OpenAPI client at `docs/postman/` for manual testing
 
 ---
 
