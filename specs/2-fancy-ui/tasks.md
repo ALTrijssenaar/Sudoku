@@ -1,10 +1,10 @@
 # Tasks for: Fancy, Efficient .NET Web UI (Feature 2)
 
 ## Phase 1 - Setup (project initialization)
-- [ ] T001 Create Blazor WebAssembly project at src/Sudoku.UI/
-- [ ] T002 Add project to solution at src/Sudoku.sln
-- [ ] T003 Add README and quickstart at README.md and specs/2-fancy-ui/quickstart.md
-- [ ] T004 Add .env.sample for frontend config at src/Sudoku.UI/.env.sample
+- [x] T001 Create Blazor WebAssembly project at src/Sudoku.UI/
+- [x] T002 Add project to solution at src/Sudoku.sln
+- [x] T003 Add README and quickstart at README.md and specs/2-fancy-ui/quickstart.md
+- [x] T004 Add .env.sample for frontend config at src/Sudoku.UI/.env.sample
 
 ## Phase 2 - Foundational (blocking prerequisites)
 - [ ] T005 [P] Implement entity models in src/Sudoku.UI/Models/ (User, Puzzle, GameSession, Difficulty)
