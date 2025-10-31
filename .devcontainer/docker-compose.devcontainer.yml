@@ -4,7 +4,7 @@ services:
   devcontainer:
     image: mcr.microsoft.com/devcontainers/dotnet:9.0
     volumes:
-      - ..:/workspace:cached
+      - .:/workspace:cached
     network_mode: service:postgres
     command: sleep infinity
     environment:

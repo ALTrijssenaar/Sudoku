@@ -27,7 +27,8 @@
         "formulahendry.dotnet-test-explorer",
         "eamodio.gitlens",
         "editorconfig.editorconfig",
-        "ms-vscode.powershell"
+        "ms-vscode.powershell",
+        "GitHub.copilot-chat"
       ],
       "settings": {
         "dotnet.defaultSolution": "src/Sudoku.sln"
