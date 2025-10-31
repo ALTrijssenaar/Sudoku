@@ -35,8 +35,8 @@
       }
     }
   },
-  "postCreateCommand": "dotnet restore src/Sudoku.sln",
-  "postStartCommand": "dotnet build src/Sudoku.sln",
+  // "postCreateCommand": "dotnet restore src/Sudoku.sln",
+  // "postStartCommand": "dotnet build src/Sudoku.sln",
   "remoteUser": "vscode",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {

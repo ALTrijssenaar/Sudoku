@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": ".NET Core Launch (web)",
+      "name": "Start Backend API",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "prelaunch: prepare debug",
@@ -29,6 +29,33 @@
       "name": ".NET Core Attach",
       "type": "coreclr",
       "request": "attach"
+    },
+    {
+      "name": "Start Frontend UI",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Start Frontend UI",
+      "program": "${workspaceFolder}/src/Sudoku.UI/bin/Debug/net9.0/Sudoku.UI.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Sudoku.UI",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Start Backend & Frontend Together",
+      "configurations": [
+        "Start Backend API",
+        "Start Frontend UI"
+      ]
     }
   ]
 }
