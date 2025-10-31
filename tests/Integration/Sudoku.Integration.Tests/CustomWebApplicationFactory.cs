@@ -8,7 +8,7 @@ namespace Sudoku.Integration.Tests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly string _databaseName = "InMemoryTestDb_" + Guid.NewGuid();
+    private static readonly string DatabaseName = "InMemoryTestDb_" + Guid.NewGuid();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -16,10 +16,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             // Add DbContext using in-memory database for testing
             // Since we're in Testing environment, Program.cs won't register Npgsql
-            // Use a consistent database name for the entire test run
+            // Use a static database name to ensure all contexts connect to the same database
             services.AddDbContext<SudokuDbContext>(options =>
             {
-                options.UseInMemoryDatabase(_databaseName);
+                options.UseInMemoryDatabase(DatabaseName);
+                options.EnableSensitiveDataLogging();
             });
         });
 
