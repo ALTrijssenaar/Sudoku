@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Sudoku.Core.Repositories;
+using Sudoku.Core.Services;
 using Sudoku.Infrastructure.Data;
 using Sudoku.Infrastructure.Repositories;
+using Sudoku.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,11 @@ builder.Services.AddDbContext<SudokuDbContext>(options =>
 
 // Register repositories
 builder.Services.AddScoped<IGameSessionRepository, GameSessionRepository>();
+builder.Services.AddScoped<IPuzzleRepository, PuzzleRepository>();
+
+// Register services
+builder.Services.AddScoped<IPuzzleGenerator, PuzzleGenerator>();
+builder.Services.AddScoped<BoardValidator>();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -30,3 +37,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Make Program accessible to tests
+public partial class Program { }
