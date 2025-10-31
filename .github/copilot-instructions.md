@@ -98,8 +98,8 @@
 - **Restore**: `dotnet restore src/Sudoku.sln`
 - **Update packages**: Use `dotnet add package` or edit `.csproj` files
 - **Key dependencies**:
-	- ASP.NET Core 9.0
-	- Entity Framework Core 9.0
+	- .NET 9
+	- Entity Framework Core (EF Core)
 	- Npgsql.EntityFrameworkCore.PostgreSQL
 	- Swashbuckle.AspNetCore (Swagger/OpenAPI)
 	- xUnit (testing)
@@ -117,7 +117,7 @@
 	- Verify EF Core tools installed: `dotnet tool install --global dotnet-ef`
 - **HTTPS certificate warnings**: 
 	- Trust dev certificate: `dotnet dev-certs https --trust`
-	- Or use HTTP endpoints (port 5000/7000)
+	- Or use HTTP endpoints (API: `http://localhost:5000`, UI: `http://localhost:7000`)
 - **Test failures in CI**: 
 	- Check PostgreSQL service is configured in workflow
 	- Verify connection string uses correct credentials
