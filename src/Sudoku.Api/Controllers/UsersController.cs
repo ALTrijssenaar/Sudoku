@@ -57,7 +57,10 @@ public class UsersController : ControllerBase
 
     private Guid GetUserIdFromClaims()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // Try to find the user ID in the "sub" claim (from JWT)
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                         ?? User.FindFirst("sub")?.Value;
+        
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
             throw new UnauthorizedAccessException("Invalid user ID in token");
