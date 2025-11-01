@@ -1,0 +1,271 @@
+@using System.Net.Http.Json
+
+<div class="sudoku-container">
+    <h2>Sudoku Game</h2>
+    
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+
+    @if (board == null)
+    {
+        <div class="controls">
+            <button class="btn btn-primary" @onclick="StartNewGame">Start New Game</button>
+            <select class="form-select" @bind="selectedDifficulty">
+                <option value="1">Easy</option>
+                <option value="2">Medium</option>
+                <option value="3">Hard</option>
+            </select>
+        </div>
+    }
+    else
+    {
+        <div class="controls">
+            <button class="btn btn-secondary" @onclick="StartNewGame">New Game</button>
+            <button class="btn btn-success" @onclick="CheckSolution">Check Solution</button>
+        </div>
+
+        <div class="sudoku-board">
+            @for (int row = 0; row < 9; row++)
+            {
+                var r = row; // Capture for lambda
+                <div class="sudoku-row">
+                    @for (int col = 0; col < 9; col++)
+                    {
+                        var c = col; // Capture for lambda
+                        var isInitial = initialBoard[r, c] != 0;
+                        var cellClass = $"sudoku-cell {(isInitial ? "initial-cell" : "")} {((r / 3 + c / 3) % 2 == 0 ? "light-box" : "dark-box")}";
+                        
+                        <input type="number" 
+                               class="@cellClass" 
+                               min="0" 
+                               max="9" 
+                               value="@(board[r, c] == 0 ? "" : board[r, c].ToString())"
+                               disabled="@isInitial"
+                               @onchange="@(e => OnCellChanged(r, c, e.Value?.ToString()))" />
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .sudoku-container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .controls {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .form-select {
+        max-width: 150px;
+    }
+
+    .sudoku-board {
+        display: inline-block;
+        border: 3px solid #000;
+        background: #fff;
+    }
+
+    .sudoku-row {
+        display: flex;
+    }
+
+    .sudoku-cell {
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        border: 1px solid #999;
+        outline: none;
+    }
+
+    .sudoku-cell:nth-child(3n) {
+        border-right: 3px solid #000;
+    }
+
+    .sudoku-row:nth-child(3n) .sudoku-cell {
+        border-bottom: 3px solid #000;
+    }
+
+    .initial-cell {
+        background-color: #f0f0f0;
+        color: #000;
+        font-weight: bold;
+    }
+
+    .light-box {
+        background-color: #fff;
+    }
+
+    .dark-box {
+        background-color: #f8f8f8;
+    }
+
+    .sudoku-cell:not(.initial-cell):focus {
+        background-color: #e3f2fd;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
+@code {
+    [Inject]
+    private HttpClient? Http { get; set; }
+
+    private int[,]? board;
+    private int[,]? initialBoard;
+    private Guid? puzzleId;
+    private int selectedDifficulty = 1;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private async Task StartNewGame()
+    {
+        try
+        {
+            errorMessage = null;
+            successMessage = null;
+
+            var response = await Http!.PostAsJsonAsync("http://localhost:5000/api/puzzle/generate", 
+                new { Difficulty = selectedDifficulty });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = "Failed to generate puzzle. Please try again.";
+                return;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<PuzzleResponse>();
+            
+            if (result != null)
+            {
+                puzzleId = result.Id;
+                initialBoard = result.InitialBoard;
+                board = (int[,])result.InitialBoard.Clone();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error starting game: {ex.Message}";
+        }
+    }
+
+    private async Task OnCellChanged(int row, int col, string? value)
+    {
+        if (board == null || initialBoard == null) return;
+
+        errorMessage = null;
+        successMessage = null;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            board[row, col] = 0;
+            return;
+        }
+
+        if (!int.TryParse(value, out int numValue) || numValue < 1 || numValue > 9)
+        {
+            board[row, col] = 0;
+            return;
+        }
+
+        try
+        {
+            var validateResponse = await Http!.PostAsJsonAsync(
+                $"http://localhost:5000/api/puzzle/{puzzleId}/validate-move",
+                new { CurrentBoard = board, Row = row, Col = col, Value = numValue });
+
+            var validateResult = await validateResponse.Content.ReadFromJsonAsync<ValidateMoveResponse>();
+
+            if (validateResult != null && validateResult.IsValid)
+            {
+                board[row, col] = numValue;
+            }
+            else
+            {
+                board[row, col] = 0;
+                errorMessage = validateResult?.Message ?? "Invalid move";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error validating move: {ex.Message}";
+            board[row, col] = 0;
+        }
+    }
+
+    private async Task CheckSolution()
+    {
+        if (board == null || puzzleId == null) return;
+
+        try
+        {
+            errorMessage = null;
+            successMessage = null;
+
+            var response = await Http!.PostAsJsonAsync(
+                $"http://localhost:5000/api/puzzle/{puzzleId}/validate-solution",
+                new { CurrentBoard = board });
+
+            var result = await response.Content.ReadFromJsonAsync<ValidateSolutionResponse>();
+
+            if (result != null)
+            {
+                if (result.IsComplete)
+                {
+                    successMessage = result.Message;
+                }
+                else
+                {
+                    errorMessage = result.Message;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error checking solution: {ex.Message}";
+        }
+    }
+
+    private class PuzzleResponse
+    {
+        public Guid Id { get; set; }
+        public int[,] InitialBoard { get; set; } = new int[9, 9];
+        public int Difficulty { get; set; }
+    }
+
+    private class ValidateMoveResponse
+    {
+        public bool IsValid { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    private class ValidateSolutionResponse
+    {
+        public bool IsComplete { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+}
