@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5000',
+    baseURL: 'http://localhost:5002',
     trace: 'on-first-retry',
   },
 
@@ -21,7 +21,7 @@ export default defineConfig({
 
   webServer: {
     command: 'dotnet run --project ../../frontend/src/Sudoku.UI/Sudoku.UI.csproj',
-    url: 'http://localhost:5000',
+    url: 'http://localhost:5002',
     reuseExistingServer: !process.env.CI,
   },
 });
