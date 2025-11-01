@@ -1,0 +1,71 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: sudoku
+          POSTGRES_PASSWORD: sudoku_dev_password
+          POSTGRES_DB: sudoku_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    
+    - name: Run backend tests
+      run: dotnet test backend/tests/Sudoku.Tests/Sudoku.Tests.csproj --no-build --configuration Release --verbosity normal
+      env:
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=sudoku_db;Username=sudoku;Password=sudoku_dev_password"
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install Playwright dependencies
+      run: |
+        cd frontend/tests
+        npm ci
+        npx playwright install --with-deps chromium
+    
+    - name: Run Playwright tests
+      run: |
+        cd frontend/tests
+        npm test
+      env:
+        ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=sudoku_db;Username=sudoku;Password=sudoku_dev_password"
+    
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: frontend/tests/playwright-report/
+        retention-days: 30
